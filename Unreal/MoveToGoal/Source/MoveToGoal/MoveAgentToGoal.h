@@ -29,10 +29,11 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
+	// Set to BP a box component
 	UPROPERTY(EditAnywhere)
 	UBoxComponent* CubeBox;
 
+	// Set to BP a cube mesh component
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* CubeMeshComponent;
-
 };

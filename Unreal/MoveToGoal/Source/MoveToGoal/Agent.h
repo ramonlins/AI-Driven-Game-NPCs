@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ObservationCollector.h"
+#include "SocketClient.h"
 
 /**
  *
@@ -18,7 +19,12 @@ public:
 
 	// void OnActionReceived();
 	// void Heuristic();
-	// void SetReward(float value);
+	// void SetReward();
+	// void BeginEpisode()
 	// void EndEpisode();
 
+	// Declare socket client
+	SocketClient* SocketConnection;
+
+	bool IsSocketConnected();
 };

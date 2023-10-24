@@ -21,7 +21,12 @@ AMoveAgentToGoal::AMoveAgentToGoal()
 void AMoveAgentToGoal::BeginPlay()
 {
 	Super::BeginPlay();
-
+	// Here you can check the socket connection and print messages
+    if (Agent::IsSocketConnected()) { // Assuming you have this method in Agent
+        UE_LOG(LogTemp, Warning, TEXT("Client Socket was created successfully!!!"));
+    } else {
+        UE_LOG(LogTemp, Warning, TEXT("Client Socket creation failed!!!"));
+    }
 }
 
 // Called every frame
@@ -37,7 +42,7 @@ void AMoveAgentToGoal::Tick(float DeltaTime)
     for (int32 i=0; i < AgentObservations.Num(); i++)
     {
         float val = AgentObservations[i];
-		UE_LOG(LogTemp, Warning, TEXT("Observation Value: %f"), val);
+		UE_LOG(LogTemp, Warning, TEXT("Observation Value [%i]: %f"), i, val);
     }
 
 	ObservationCollector::ClearObservations();

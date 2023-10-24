@@ -7,12 +7,13 @@ ObservationCollector::ObservationCollector()
 {
 
 }
-
+// Add one float value
 void ObservationCollector::AddObservations(float value)
 {
     observations.Add(value);
 }
 
+// Add vector values (x, y, z)
 void ObservationCollector::AddObservations(FVector value)
 {
     observations.Add(value.X);
@@ -21,11 +22,13 @@ void ObservationCollector::AddObservations(FVector value)
 
 }
 
+// Get the added observations
 TArray<float> ObservationCollector::GetObservations() const
 {
     return observations;
 }
 
+// Clear the added observations
 void ObservationCollector::ClearObservations()
 {
     observations.Empty();
