@@ -3,22 +3,25 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Containers/Array.h"
 
 /**
  *
  */
-class MOVETOGOAL_API ObservationCollector
+class ObservationCollector
 {
 public:
 	ObservationCollector();
 
-	void AddObservation(float value);
-	void AddObservation(FVector value);
+	// Add observations
+	void AddObservations(float value);
+	void AddObservations(FVector value);
 
+	// Get observations
 	TArray<float> GetObservations() const;
+
+	// Clear observations
 	void ClearObservations();
 
-	TArray<float> Observations;
-
+	// Array of observations
+	TArray<float> observations;
 };

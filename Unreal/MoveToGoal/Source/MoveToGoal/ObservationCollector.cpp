@@ -8,25 +8,26 @@ ObservationCollector::ObservationCollector()
 
 }
 
-void ObservationCollector::AddObservation(float value)
+void ObservationCollector::AddObservations(float value)
 {
-    Observations.Add(value);
+    observations.Add(value);
 }
 
-void ObservationCollector::AddObservation(FVector value)
+void ObservationCollector::AddObservations(FVector value)
 {
-    Observations.Add(value.X);
-    Observations.Add(value.Y);
-    Observations.Add(value.Z);
+    observations.Add(value.X);
+    observations.Add(value.Y);
+    observations.Add(value.Z);
 
 }
 
 TArray<float> ObservationCollector::GetObservations() const
 {
-    return Observations;
+    return observations;
 }
 
 void ObservationCollector::ClearObservations()
 {
-    Observations.Empty();
+    observations.Empty();
 }
+
