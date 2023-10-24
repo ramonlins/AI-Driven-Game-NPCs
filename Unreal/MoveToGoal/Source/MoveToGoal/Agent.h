@@ -8,12 +8,10 @@
 /**
  *
  */
-class Agent
+class Agent: public ObservationCollector
 {
 public:
 	Agent();
-
-	ObservationCollector* ObservationCollectorInstance;
 
 	void CollectObservations(float value);
 	void CollectObservations(FVector value);

@@ -5,17 +5,17 @@
 
 Agent::Agent()
 {
-    ObservationCollectorInstance = new ObservationCollector();
+
 }
 
 void Agent::CollectObservations(float location)
 {
-	ObservationCollectorInstance->AddObservations(location);
+	AddObservations(location);
 
 }
 
 void Agent::CollectObservations(FVector location)
 {
-	ObservationCollectorInstance->AddObservations(location);
+	AddObservations(location);
 
 }

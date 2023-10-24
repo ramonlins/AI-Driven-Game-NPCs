@@ -30,9 +30,9 @@ void AMoveAgentToGoal::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	FVector agentLocation = GetActorLocation();
-	CollectObservations(agentLocation);
+	Agent::CollectObservations(agentLocation);
 
-	TArray<float> AgentObservations = ObservationCollectorInstance->GetObservations();
+	TArray<float> AgentObservations = ObservationCollector::GetObservations();
 
     for (int32 i=0; i < AgentObservations.Num(); i++)
     {
@@ -40,7 +40,7 @@ void AMoveAgentToGoal::Tick(float DeltaTime)
 		UE_LOG(LogTemp, Warning, TEXT("Observation Value: %f"), val);
     }
 
-	ObservationCollectorInstance->ClearObservations();
+	ObservationCollector::ClearObservations();
 
 }
 
