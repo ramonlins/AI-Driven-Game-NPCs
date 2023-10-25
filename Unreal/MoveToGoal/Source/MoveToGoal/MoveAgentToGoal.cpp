@@ -52,18 +52,19 @@ void AMoveAgentToGoal::Tick(float DeltaTime)
 
 	TArray<float> AgentObservations = Agent::GetObservations();
 
+	// Create the buffer
+    TArray<uint8> SendBuffer;
+	FMemoryWriter Writer(SendBuffer);
+
     for (int32 i=0; i < AgentObservations.Num(); i++)
     {
         float val = AgentObservations[i];
+		Writer << val;
 		UE_LOG(LogTemp, Warning, TEXT("Observation Value [%i]: %f"), i, val);
     }
 
 	// Send data to server
 	if (Agent::IsSocketConnected()){
-        // Create the buffer
-        TArray<uint8> SendBuffer;
-        // Serialize casting location to a byte of pointers (treat as array of bytes)
-        SendBuffer.Append((uint8*)&agentLocation, sizeof(FVector));
         // Track how many bytes were actually sent over the socket.
         int32 BytesSent = 0;
         // Retrieve pointer, number of bytes and send over socket
