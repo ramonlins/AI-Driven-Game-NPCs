@@ -14,6 +14,7 @@ class Agent: public ObservationCollector
 public:
 	Agent();
 
+	// Agent
 	void CollectObservations(float value);
 	void CollectObservations(FVector value);
 
@@ -23,8 +24,10 @@ public:
 	// void BeginEpisode()
 	// void EndEpisode();
 
-	// Declare socket client
-	SocketClient* SocketConnection;
+	// Socket
+	SocketClient* socketConnection;
 
+	bool IsSocketCreated();
 	bool IsSocketConnected();
+
 };

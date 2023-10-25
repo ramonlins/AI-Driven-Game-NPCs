@@ -2,11 +2,11 @@
 
 
 #include "Agent.h"
+#include "SocketTypes.h"
 
 Agent::Agent()
 {
-	// Create socket client connection
-	SocketConnection = new SocketClient();
+
 }
 
 void Agent::CollectObservations(float location)
@@ -20,8 +20,18 @@ void Agent::CollectObservations(FVector location)
 	AddObservations(location);
 
 }
+
 // Check if socket was created successfully
+bool Agent::IsSocketCreated()
+{
+	return socketConnection->clientSocket != nullptr;
+}
+
 bool Agent::IsSocketConnected()
 {
-	return SocketConnection->ClientSocket != nullptr;
+	if (IsSocketCreated()){
+		ESocketConnectionState connectionState = socketConnection->clientSocket->GetConnectionState();
+		return connectionState == ESocketConnectionState::SCS_Connected;
+	}
+	return false;
 }

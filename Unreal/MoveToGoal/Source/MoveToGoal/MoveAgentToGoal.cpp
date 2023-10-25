@@ -21,12 +21,27 @@ AMoveAgentToGoal::AMoveAgentToGoal()
 void AMoveAgentToGoal::BeginPlay()
 {
 	Super::BeginPlay();
-	// Here you can check the socket connection and print messages
-    if (Agent::IsSocketConnected()) { // Assuming you have this method in Agent
+	// Create socket client connection
+	socketConnection = new SocketClient();
+	socketConnection->Connect();
+
+	// Here you can check the socket creation and print messages
+    if (Agent::IsSocketCreated()) {
         UE_LOG(LogTemp, Warning, TEXT("Client Socket was created successfully!!!"));
     } else {
         UE_LOG(LogTemp, Warning, TEXT("Client Socket creation failed!!!"));
     }
+
+	// Here you can check the socket connection and print messages
+    if (Agent::IsSocketConnected()) {
+        UE_LOG(LogTemp, Warning, TEXT("Client Socket was connected successfully!!!"));
+		// Try to see the adress and port the client is connecting
+	} else {
+        UE_LOG(LogTemp, Warning, TEXT("Client Socket connection failed!!!"));
+    }
+
+	// Hello server
+
 }
 
 // Called every frame

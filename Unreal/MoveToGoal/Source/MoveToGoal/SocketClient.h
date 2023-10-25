@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"
+#include "Interfaces/IPv4/IPv4Address.h"
+#include "Containers/UnrealString.h"
 
 /**
  *
@@ -15,7 +17,11 @@ public:
 	SocketClient();
 	~SocketClient();
 
-	// TODO: Implement connection to python server, send data, receive data and disconnect;
-	FSocket* ClientSocket;
+	ISocketSubsystem* socketSubsytem;
+	FSocket* clientSocket;
+	FString ipAddress;
+	int32 port;
+
+	bool Connect();
 
 };
