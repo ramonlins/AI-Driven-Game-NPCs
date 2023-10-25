@@ -40,8 +40,6 @@ void AMoveAgentToGoal::BeginPlay()
         UE_LOG(LogTemp, Warning, TEXT("Client Socket connection failed!!!"));
     }
 
-	// Hello server
-
 }
 
 // Called every frame
@@ -52,7 +50,7 @@ void AMoveAgentToGoal::Tick(float DeltaTime)
 	FVector agentLocation = GetActorLocation();
 	Agent::CollectObservations(agentLocation);
 
-	TArray<float> AgentObservations = ObservationCollector::GetObservations();
+	TArray<float> AgentObservations = Agent::GetObservations();
 
     for (int32 i=0; i < AgentObservations.Num(); i++)
     {
@@ -60,7 +58,19 @@ void AMoveAgentToGoal::Tick(float DeltaTime)
 		UE_LOG(LogTemp, Warning, TEXT("Observation Value [%i]: %f"), i, val);
     }
 
-	ObservationCollector::ClearObservations();
+	// Send data to server
+	if (Agent::IsSocketConnected()){
+        // Create the buffer
+        TArray<uint8> SendBuffer;
+        // Serialize casting location to a byte of pointers (treat as array of bytes)
+        SendBuffer.Append((uint8*)&agentLocation, sizeof(FVector));
+        // Track how many bytes were actually sent over the socket.
+        int32 BytesSent = 0;
+        // Retrieve pointer, number of bytes and send over socket
+        socketConnection->clientSocket->Send(SendBuffer.GetData(), SendBuffer.Num(), BytesSent);
+    }
+
+	Agent::ClearObservations();
 
 }
 

@@ -19,9 +19,14 @@ public:
 
 	ISocketSubsystem* socketSubsytem;
 	FSocket* clientSocket;
-	FString ipAddress;
-	int32 port;
 
 	bool Connect();
+	//bool Send();
+	//bool Receive();
+
+private:
+	// Set localhost and port
+    FString ipAddress = "127.0.0.1";
+	int32 port = 8888;
 
 };
