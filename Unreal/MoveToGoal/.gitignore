@@ -73,8 +73,9 @@ Plugins/*/Intermediate/*
 # Cache files for the editor to use
 DerivedDataCache/*
 
-Content/*.umap
-Content/*.uasset
+
+*.uasset
+*.umap
 
 Content/*__ExternalActors__/
 Content/*__ExternalObjects__/
