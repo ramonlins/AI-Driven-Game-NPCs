@@ -76,3 +76,5 @@ DerivedDataCache/*
 Content/*.umap
 Content/*.uasset
 
+Content/*__ExternalActors__/
+Content/*__ExternalObjects__/
