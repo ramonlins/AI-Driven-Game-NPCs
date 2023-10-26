@@ -51,21 +51,35 @@ bool SocketClient::Connect()
     return isCon;
 }
 
+void SocketClient::HandShake()
+{
     // Send a test message for handshake
-    const FString data = "Hello";
+    const FString data = "Hello Server";
+    // Create the buffer
+    TArray<uint8> SendBuffer;
+    // Initializes the converter with the content of the data
+    FTCHARToUTF8 Converter(*data); // Dereference to give access to TCHAR array
+    // Retrieve converter pointer, cast to byte of pointers (treat as array of bytes)
+    SendBuffer.Append((uint8*)Converter.Get(), Converter.Length());
+    // Track how many bytes were actually sent over the socket.
+    int32 BytesSent = 0;
+    // Retrieve pointer, number of bytes and send over socket
+    clientSocket->Send(SendBuffer.GetData(), SendBuffer.Num(), BytesSent);
 
-    if (isCon){
-        // Create the buffer
-        TArray<uint8> SendBuffer;
-        // Initializes the converter with the content of the data
-        FTCHARToUTF8 Converter(*data); // Dereference to give access to TCHAR array
-        // Retrieve converter pointer, cast to byte of pointers (treat as array of bytes)
-        SendBuffer.Append((uint8*)Converter.Get(), Converter.Length());
-        // Track how many bytes were actually sent over the socket.
-        int32 BytesSent = 0;
-        // Retrieve pointer, number of bytes and send over socket
-        clientSocket->Send(SendBuffer.GetData(), SendBuffer.Num(), BytesSent);
+    // Receive a test message for handshake
+    const int32 bufferSize = 1024;
+    uint8 recvBuffer[bufferSize] = {0};
+    int32 bytesRead;
+
+    if (clientSocket->Recv(recvBuffer, bufferSize, bytesRead)){
+        FString receivedMessage = UTF8_TO_TCHAR(recvBuffer);
+        // Optional: Print or handle the received message
+        UE_LOG(LogTemp, Warning, TEXT("Received from server: %s"), *receivedMessage);
+    }else{
+        UE_LOG(LogTemp, Warning, TEXT("Failed to receive data or no data was received."));
     }
+
+}
 
 // bool SocketClient::Send()
 // {

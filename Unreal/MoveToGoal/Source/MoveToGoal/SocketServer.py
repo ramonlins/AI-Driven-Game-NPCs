@@ -18,9 +18,9 @@ try:
             data = conn.recv(1024).decode('utf-8')
 
             while True:
-                if data == "Hello":
+                if data == "Hello Server":
                     print("Received handshake from Unreal client")
-                    # conn.sendall(b"Connected")
+                    conn.sendall(b"Hello Client")
                 else:
                     # Unpack the received FVector
                     x, y, z = struct.unpack("fff", data)

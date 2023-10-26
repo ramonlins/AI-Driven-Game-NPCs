@@ -21,8 +21,13 @@ public:
 	FSocket* clientSocket;
 
 	bool Connect();
+	void HandShake();
 	//bool Send();
 	//bool Receive();
+
+	// Debug
+	bool IsSocketCreated();
+	bool IsSocketConnected();
 
 private:
 	// Set localhost and port
