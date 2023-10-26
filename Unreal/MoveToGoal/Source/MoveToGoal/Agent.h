@@ -27,7 +27,4 @@ public:
 	// Socket
 	SocketClient* socketConnection;
 
-	bool IsSocketCreated();
-	bool IsSocketConnected();
-
 };

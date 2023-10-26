@@ -25,21 +25,6 @@ void AMoveAgentToGoal::BeginPlay()
 	socketConnection = new SocketClient();
 	socketConnection->Connect();
 
-	// Here you can check the socket creation and print messages
-    if (Agent::IsSocketCreated()) {
-        UE_LOG(LogTemp, Warning, TEXT("Client Socket was created successfully!!!"));
-    } else {
-        UE_LOG(LogTemp, Warning, TEXT("Client Socket creation failed!!!"));
-    }
-
-	// Here you can check the socket connection and print messages
-    if (Agent::IsSocketConnected()) {
-        UE_LOG(LogTemp, Warning, TEXT("Client Socket was connected successfully!!!"));
-		// Try to see the adress and port the client is connecting
-	} else {
-        UE_LOG(LogTemp, Warning, TEXT("Client Socket connection failed!!!"));
-    }
-
 }
 
 // Called every frame
@@ -64,7 +49,7 @@ void AMoveAgentToGoal::Tick(float DeltaTime)
     }
 
 	// Send data to server
-	if (Agent::IsSocketConnected()){
+	if (socketConnection->IsSocketConnected()){
         // Track how many bytes were actually sent over the socket.
         int32 BytesSent = 0;
         // Retrieve pointer, number of bytes and send over socket

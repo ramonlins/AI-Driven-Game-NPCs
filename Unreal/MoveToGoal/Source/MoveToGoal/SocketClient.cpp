@@ -5,12 +5,20 @@
 #include "Templates/SharedPointer.h"
 #include "Containers/StringConv.h"
 #include "Engine/NetDriver.h"
+#include "SocketTypes.h"
 
 SocketClient::SocketClient()
 {
     // Create a new socket based on subsystem platform, TCP (NAME_Stream)
     socketSubsytem = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM);
     clientSocket = socketSubsytem->CreateSocket(NAME_Stream, TEXT("ClientSocket"), false);
+
+    // Here you can check the socket creation and print messages
+    if (IsSocketCreated()) {
+        UE_LOG(LogTemp, Warning, TEXT("Client Socket was created successfully!!!"));
+    } else {
+        UE_LOG(LogTemp, Warning, TEXT("Client Socket creation failed!!!"));
+    }
 
 }
 
@@ -32,6 +40,17 @@ bool SocketClient::Connect()
 
     bool isCon = clientSocket->Connect(*safeAddress);
 
+    // Here you can check the socket connection
+    if (IsSocketConnected()) {
+        UE_LOG(LogTemp, Warning, TEXT("Client Socket was connected successfully!!!"));
+		HandShake();
+	} else {
+        UE_LOG(LogTemp, Warning, TEXT("Client Socket connection failed!!!"));
+    }
+
+    return isCon;
+}
+
     // Send a test message for handshake
     const FString data = "Hello";
 
@@ -48,8 +67,22 @@ bool SocketClient::Connect()
         clientSocket->Send(SendBuffer.GetData(), SendBuffer.Num(), BytesSent);
     }
 
-    //ClientSocket->Close();
-    //ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(clientSocket);
+// bool SocketClient::Send()
+// {
 
-    return isCon;
+// }
+
+// Check if socket was created successfully
+bool SocketClient::IsSocketCreated()
+{
+	return clientSocket != nullptr;
+}
+
+bool SocketClient::IsSocketConnected()
+{
+	if (IsSocketCreated()){
+		ESocketConnectionState connectionState = clientSocket->GetConnectionState();
+		return connectionState == ESocketConnectionState::SCS_Connected;
+	}
+	return false;
 }
