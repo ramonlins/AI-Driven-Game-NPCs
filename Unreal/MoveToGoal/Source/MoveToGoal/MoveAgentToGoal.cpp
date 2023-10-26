@@ -2,6 +2,7 @@
 
 
 #include "MoveAgentToGoal.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AMoveAgentToGoal::AMoveAgentToGoal()
@@ -15,12 +16,16 @@ AMoveAgentToGoal::AMoveAgentToGoal()
 	CubeMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CubeMesh"));
 	CubeMeshComponent->SetupAttachment(CubeBox);
 
+	// Set initial position to zero relative to process
+	FVector agentLocation = FVector::ZeroVector;
 }
 
 // Called when the game starts or when spawned
 void AMoveAgentToGoal::BeginPlay()
 {
 	Super::BeginPlay();
+
+
 	// Create socket client connection
 	socketConnection = new SocketClient();
 	socketConnection->Connect();
@@ -31,30 +36,28 @@ void AMoveAgentToGoal::BeginPlay()
 void AMoveAgentToGoal::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	FVector agentLocation = GetActorLocation();
+	// Collect agent location and target location
+	agentLocation = GetActorLocation();
 	Agent::CollectObservations(agentLocation);
 
-	TArray<float> AgentObservations = Agent::GetObservations();
+	// Get all locations
+	TArray<float> allObservations = Agent::GetObservations();
 
-	// Create the buffer
-    TArray<uint8> SendBuffer;
-	FMemoryWriter Writer(SendBuffer);
+	// Send to server
+	socketConnection->Send(allObservations);
 
-    for (int32 i=0; i < AgentObservations.Num(); i++)
-    {
-        float val = AgentObservations[i];
-		Writer << val;
-		UE_LOG(LogTemp, Warning, TEXT("Observation Value [%i]: %f"), i, val);
-    }
+	// Receive action
+	FVector newObservations = socketConnection->Receive();
 
-	// Send data to server
-	if (socketConnection->IsSocketConnected()){
-        // Track how many bytes were actually sent over the socket.
-        int32 BytesSent = 0;
-        // Retrieve pointer, number of bytes and send over socket
-        socketConnection->clientSocket->Send(SendBuffer.GetData(), SendBuffer.Num(), BytesSent);
-    }
+	// Update new location
+	agentLocation.X = newObservations.X;
+	agentLocation.Y = newObservations.Y;
+
+	// Get world delta time (Current drawn frame  - previous drawn frame)
+	static double deltaTime = UGameplayStatics::GetWorldDeltaSeconds(this);
+
+	// Set agent to new location based on delta time
+	SetActorLocation(agentLocation * deltaTime * agentSpeed);
 
 	Agent::ClearObservations();
 

@@ -22,8 +22,8 @@ public:
 
 	bool Connect();
 	void HandShake();
-	//bool Send();
-	//bool Receive();
+	void Send(TArray<float>& data);
+	FVector& Receive();
 
 	// Debug
 	bool IsSocketCreated();

@@ -81,10 +81,52 @@ void SocketClient::HandShake()
 
 }
 
-// bool SocketClient::Send()
-// {
+// Send array of bytes to server
+void SocketClient::Send(TArray<float>& data)
+{
+    // Create the buffer
+    TArray<uint8> SendBuffer;
+	FMemoryWriter writer(SendBuffer);
 
-// }
+    for (int32 i=0; i < data.Num(); i++)
+    {
+        float val = data[i];
+		writer << val;
+		UE_LOG(LogTemp, Warning, TEXT("Observation Value [%i]: %f"), i, val);
+    }
+
+    // Track how many bytes were actually sent over the socket.
+    int32 BytesSent = 0;
+    // Retrieve pointer, number of bytes and send over socket
+    clientSocket->Send(SendBuffer.GetData(), SendBuffer.Num(), BytesSent);
+}
+
+FVector& SocketClient::Receive()
+{
+    const int32 bufferSize = 1024;  // or whatever size you expect
+    uint8 recvBuffer[bufferSize] = {0};
+    int32 bytesRead;
+
+    FVector newLocation = FVector::ZeroVector;  // Default to (0, 0, 0)
+
+    if (clientSocket->Recv(recvBuffer, bufferSize, bytesRead)){
+        FMemoryReader reader(TArray<uint8>(recvBuffer, bytesRead));  // Construct FMemoryReader with the data
+        float val;
+        while(!reader.AtEnd())
+        {
+            reader << val;
+            UE_LOG(LogTemp, Warning, TEXT("Received Value: %f"), val);
+        }
+
+        FVector neWlocation;
+        reader << neWlocation;
+    }
+    else{
+        UE_LOG(LogTemp, Warning, TEXT("No action received !!!"));
+    }
+
+    return newLocation;
+}
 
 // Check if socket was created successfully
 bool SocketClient::IsSocketCreated()
@@ -92,6 +134,7 @@ bool SocketClient::IsSocketCreated()
 	return clientSocket != nullptr;
 }
 
+// Check if socket was created successfully
 bool SocketClient::IsSocketConnected()
 {
 	if (IsSocketCreated()){

@@ -1,10 +1,14 @@
 import socket
 import pdb
 import struct
+from inference import MLPAgent
 
 # Setup server
 HOST = "127.0.0.1"
 PORT: int = 8888
+
+
+model = MLPAgent(3, 2)
 
 try:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -23,8 +27,24 @@ try:
                     conn.sendall(b"Hello Client")
                 else:
                     # Unpack the received FVector
-                    x, y, z = struct.unpack("fff", data)
-                    print(f"Received FVector: {x}, {y}, {z}")
+                    obs = struct.unpack("fff", data)
+                    print(f"Received FVector: {obs[0]}, {obs[1]}, {obs[3]}")
+
+                    # Get action
+                    action = model(obs)
+
+                    # Convert the numpy array to a flattened list
+                    data_list = action.flatten().tolist()
+
+                    # Create a byte object to hold the serialized data
+                    data_bytes = b''
+
+                    # Pack each float into the byte object
+                    for value in data_list:
+                        data_bytes += struct.pack('f', value)
+
+                    # Send action
+                    conn.sendall(data_bytes)
 
                     if not data:
                         break
