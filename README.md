@@ -20,7 +20,7 @@ This repository serves as a platform to document, share, and collaborate on vari
 Here are some of the projects you'll find in this repository:
 
 - **Project 1**: *MoveToGoal* - Using Unity and ML-Agents, the project empowers an NPC to autonomously learn and navigate toward a predefined goal using reinforcement learning PPO algorithm.
-- **Project 2**: (Under development ...)
+- **Project 2**: [MoveToGoalUnreal](https://github.com/ramonlins/AI-Driven-Game-NPCs/tree/feature/unreal/Unreal/MoveToGoal) (Under development ...)
 
 Feel free to explore, use, and contribute to any of the projects. Each project will have its dedicated folder with detailed documentation and instructions on how to get started.
 
