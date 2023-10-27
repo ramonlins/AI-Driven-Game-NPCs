@@ -4,6 +4,8 @@ import numpy
 
 class MLPAgent(torch.nn.Module):
     def __init__(self, in_dim: int, out_dim: int) -> None:
+        super(MLPAgent, self).__init__()
+
         self.minx: float = -10
         self.maxx: float = 10
         self.miny: float = -10
@@ -13,8 +15,8 @@ class MLPAgent(torch.nn.Module):
         self.l2 = torch.nn.Linear(128, out_dim)
 
         # Activations
-        self.relu = torch.relu()
-        self.tanh = torch.tanh()
+        self.relu = torch.nn.ReLU()
+        self.tanh = torch.nn.Tanh()
 
     @torch.no_grad()
     def forward(self, x):
@@ -44,8 +46,8 @@ class MLPAgent(torch.nn.Module):
 
     def denormalize_coordinates(self, normalized_coordinates):
         x, y = normalized_coordinates
-        denormalized_x = x * (self.max_x - self.min_x) + self.min_x
-        denormalized_y = y * (self.max_y - self.min_y) + self.min_y
+        denormalized_x = x * (self.maxx - self.minx) + self.minx
+        denormalized_y = y * (self.maxy - self.miny) + self.miny
 
         denormalized_coordinates = denormalized_x, denormalized_y
         return denormalized_coordinates

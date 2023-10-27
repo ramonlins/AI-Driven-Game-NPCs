@@ -17,7 +17,7 @@ AMoveAgentToGoal::AMoveAgentToGoal()
 	CubeMeshComponent->SetupAttachment(CubeBox);
 
 	// Set initial position to zero relative to process
-	FVector agentLocation = FVector::ZeroVector;
+	agentLocation = FVector::ZeroVector;
 }
 
 // Called when the game starts or when spawned
@@ -49,15 +49,15 @@ void AMoveAgentToGoal::Tick(float DeltaTime)
 	// Receive action
 	FVector newObservations = socketConnection->Receive();
 
-	// Update new location
-	agentLocation.X = newObservations.X;
-	agentLocation.Y = newObservations.Y;
-
 	// Get world delta time (Current drawn frame  - previous drawn frame)
 	static double deltaTime = UGameplayStatics::GetWorldDeltaSeconds(this);
 
+	// Update new location
+	agentLocation.X += newObservations.X * deltaTime * agentSpeed;
+	agentLocation.Y += newObservations.Y * deltaTime * agentSpeed;
+
 	// Set agent to new location based on delta time
-	SetActorLocation(agentLocation * deltaTime * agentSpeed);
+	SetActorLocation(agentLocation);
 
 	Agent::ClearObservations();
 
@@ -69,4 +69,3 @@ void AMoveAgentToGoal::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 }
-

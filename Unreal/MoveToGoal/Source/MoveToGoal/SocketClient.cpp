@@ -101,25 +101,40 @@ void SocketClient::Send(TArray<float>& data)
     clientSocket->Send(SendBuffer.GetData(), SendBuffer.Num(), BytesSent);
 }
 
-FVector& SocketClient::Receive()
+FVector SocketClient::Receive()
 {
     const int32 bufferSize = 1024;  // or whatever size you expect
     uint8 recvBuffer[bufferSize] = {0};
     int32 bytesRead;
-
-    FVector newLocation = FVector::ZeroVector;  // Default to (0, 0, 0)
+    FVector newLocation;  // Default to (0, 0, 0)
 
     if (clientSocket->Recv(recvBuffer, bufferSize, bytesRead)){
-        FMemoryReader reader(TArray<uint8>(recvBuffer, bytesRead));  // Construct FMemoryReader with the data
+        TArray<uint8> dataArray(recvBuffer, bytesRead);
+        FMemoryReader reader(dataArray);  // Construct FMemoryReader with the data
+
         float val;
+        int32 counter = 0;
         while(!reader.AtEnd())
         {
             reader << val;
             UE_LOG(LogTemp, Warning, TEXT("Received Value: %f"), val);
+
+            switch (counter){
+            case 0:
+                newLocation.X = val;
+                break;
+            case 1:
+                newLocation.Y = val;
+                break;
+            default:
+                // Handle case where more than 3 floats are received
+                UE_LOG(LogTemp, Warning, TEXT("Unexpected extra value received: %f"), val);
+                break;
+            }
+            counter++;
         }
 
-        FVector neWlocation;
-        reader << neWlocation;
+        UE_LOG(LogTemp, Warning, TEXT("Received FVector: (%f, %f, %f)"), newLocation.X, newLocation.Y, newLocation.Z);
     }
     else{
         UE_LOG(LogTemp, Warning, TEXT("No action received !!!"));

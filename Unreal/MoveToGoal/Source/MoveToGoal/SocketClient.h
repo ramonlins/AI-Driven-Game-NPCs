@@ -23,7 +23,7 @@ public:
 	bool Connect();
 	void HandShake();
 	void Send(TArray<float>& data);
-	FVector& Receive();
+	FVector Receive();
 
 	// Debug
 	bool IsSocketCreated();

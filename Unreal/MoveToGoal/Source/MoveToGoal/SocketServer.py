@@ -2,6 +2,7 @@ import socket
 import pdb
 import struct
 from inference import MLPAgent
+import numpy as np
 
 # Setup server
 HOST = "127.0.0.1"
@@ -15,7 +16,6 @@ try:
         s.bind((HOST, PORT))
         s.listen()
         print("Waiting for Unreal Client ...")
-        #pdb.set_trace()
         conn, addr = s.accept()
         with conn:
             print("Connected by", addr)
@@ -28,13 +28,15 @@ try:
                 else:
                     # Unpack the received FVector
                     obs = struct.unpack("fff", data)
-                    print(f"Received FVector: {obs[0]}, {obs[1]}, {obs[3]}")
+                    print(f"Received FVector: {obs[0]}, {obs[1]}, {obs[2]}")
 
                     # Get action
-                    action = model(obs)
+                    #action = model(obs)
+                    #pdb.set_trace()
+                    action = np.random.uniform(-20, 20, 2)
 
                     # Convert the numpy array to a flattened list
-                    data_list = action.flatten().tolist()
+                    data_list = action.tolist()
 
                     # Create a byte object to hold the serialized data
                     data_bytes = b''

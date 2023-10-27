@@ -16,6 +16,7 @@ class MOVETOGOAL_API AMoveAgentToGoal : public APawn, public Agent
 public:
 	// Sets default values for this pawn's properties
 	AMoveAgentToGoal();
+
 	FVector agentLocation;
 
 	// Called every frame
@@ -39,5 +40,5 @@ private:
 
 	// Set to BP a cube mesh component
 	UPROPERTY(EditAnywhere)
-	float agentSpeed = 1.f;
+	float agentSpeed = 5.f;
 };
