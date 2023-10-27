@@ -17,14 +17,13 @@ AMoveAgentToGoal::AMoveAgentToGoal()
 	CubeMeshComponent->SetupAttachment(CubeBox);
 
 	// Set initial position to zero relative to process
-	agentLocation = FVector::ZeroVector;
+	agentLocation = FVector{0.f, 0.f, 32.f};
 }
 
 // Called when the game starts or when spawned
 void AMoveAgentToGoal::BeginPlay()
 {
 	Super::BeginPlay();
-
 
 	// Create socket client connection
 	socketConnection = new SocketClient();
@@ -37,7 +36,7 @@ void AMoveAgentToGoal::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	// Collect agent location and target location
-	agentLocation = GetActorLocation();
+	//agentLocation = GetActorLocation();
 	Agent::CollectObservations(agentLocation);
 
 	// Get all locations
