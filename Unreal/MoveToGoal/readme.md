@@ -24,3 +24,9 @@ Up next on the to-do list:
 - Final touches on the environment (like adding walls and a goal);
 
 Keep in mind this is all pretty casual. Feel free to dive in and take a look around!
+
+## Limitations
+- Uses localhost ports to exchange data between Unreal and Python.
+    - Multiple instances can have their ports collide, leading to errors.
+- Communication between Unreal and python is not secure.
+- On Linux, ports are not released immediately after the communication closes. As such, you cannot reuse ports right after closing a UnityEnvironment.
