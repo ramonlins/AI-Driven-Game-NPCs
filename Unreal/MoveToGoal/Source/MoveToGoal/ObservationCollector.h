@@ -15,6 +15,7 @@ public:
 	// Add observations
 	void AddObservations(float value);
 	void AddObservations(FVector value);
+	void AddObservations(int32 value);
 
 	// Get observations
 	TArray<float> GetObservations() const;

@@ -22,6 +22,11 @@ void ObservationCollector::AddObservations(FVector value)
 
 }
 
+void ObservationCollector::AddObservations(int32 value)
+{
+    observations.Add(value);
+}
+
 // Get the added observations
 TArray<float> ObservationCollector::GetObservations() const
 {

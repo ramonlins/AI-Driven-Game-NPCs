@@ -11,18 +11,22 @@
  */
 class Agent: public ObservationCollector
 {
+// union observationValues{
+// 	float value;
+// 	FVector value;
+// };
+
 public:
 	Agent();
 
 	// Agent
-	void CollectObservations(float value);
 	void CollectObservations(FVector value);
 
 	// void OnActionReceived();
 	// void Heuristic();
-	// void SetReward();
+	void SetReward(float value);
 	// void BeginEpisode()
-	// void EndEpisode();
+	void EndEpisode(int32 value);
 
 	// Socket
 	SocketClient* socketConnection;

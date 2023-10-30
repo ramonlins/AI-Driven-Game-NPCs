@@ -29,17 +29,33 @@ try:
                 if data == "Hello Server":
                     print("Received handshake from Unreal client")
                     connection.sendall(b"Hello Client")
+                    is_conn = True
+
+                #if is_conn:
+                    # Receive data from unreal
+                    #for ep in range(50):
+                    #    data = connection.recv(32)
+                    #    t = 0
+                    #    done = False
+                    #    while not done or t == 1000:
+                            # Unpack the received FVector
                 else:
-                    # Unpack the received FVector
-                    obs = struct.unpack("fff", data)
-                    print(f"Received FVector: {obs[0]}, {obs[1]}, {obs[2]}")
+                    us_data = struct.unpack("fffffffi", data)
+
+                    obs, reward, done = us_data[:6], us_data[6], us_data[-1]
+
+                    print(f"Received FVector OBS: {obs}")
+                    print(f"Received FVector REWARD: {reward}")
+                    print(f"Received int DONE: {done}")
 
                     # Get action
-                    action = model(obs)
-                    print(action)
-                    #pdb.set_trace()
-                    #action = np.random.uniform(-20, 20, 2)
+                    #action = model(obs)
+                    # TODO: inference
+                    #action = trainer.compute_action(obs)
 
+                    #pdb.set_trace()
+                    action = np.random.uniform(-20, 20, 2)
+                    #action = np.array([10, 0, 0])
                     # Convert the numpy array to a flattened list
                     #data_list = action.tolist()
 
@@ -54,10 +70,17 @@ try:
                     connection.sendall(data_bytes)
 
                     # TODO: Fix it (Close)
-                    if not data:
+                    if not data or done == 1:
                         break
+
+                    #t += 1
+
                 # Receive data from unreal
-                data = connection.recv(12)
+                data = connection.recv(32)
+
+                    # TODO: Trainer
+                    # trainer.train()
+
 
 except Exception as error:
     # exc_traceback = traceback.extract_tb(error.__traceback__)

@@ -18,6 +18,7 @@ public:
 	AMoveAgentToGoal();
 
 	FVector agentLocation;
+	FVector targetLocation;
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -25,17 +26,25 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION()
+    void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UPROPERTY(VisibleAnywhere)
+    UBoxComponent* TriggerBox;
+
+	bool bHitWall;
+	bool bHitGoal;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-private:
 	// Set to BP a box component
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Agent")
 	UBoxComponent* CubeBox;
 
 	// Set to BP a cube mesh component
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Agent")
 	UStaticMeshComponent* CubeMeshComponent;
 
 	// Set to BP a cube mesh component

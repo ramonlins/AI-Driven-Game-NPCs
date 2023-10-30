@@ -2,6 +2,7 @@
 
 
 #include "MoveAgentToGoal.h"
+#include "AWall.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -10,14 +11,22 @@ AMoveAgentToGoal::AMoveAgentToGoal()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	CubeBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CubeBox"));
-	RootComponent = CubeBox;
-
-	CubeMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CubeMesh"));
-	CubeMeshComponent->SetupAttachment(CubeBox);
+	// Create and setup the trigger box
+    TriggerBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerBox"));
+    RootComponent = TriggerBox;
+    // Set trigger default profile (ignore physics)
+	TriggerBox->SetCollisionProfileName(TEXT("Trigger"));
+	// Call overlap behavior when the agent (this) start to overlap with another component
+    TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &AMoveAgentToGoal::OnOverlapBegin);
+	// Define components
+	CubeBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Cube Box"));
+	CubeMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube Mesh"));
+	CubeMeshComponent->SetupAttachment(TriggerBox);
 
 	// Set initial position to zero relative to process
-	agentLocation = FVector{0.f, 0.f, 32.f};
+	agentLocation = FVector{0.f, 0.f, 33.f};
+	targetLocation = FVector{agentLocation.X + 20.f, agentLocation.Y + 20.f, agentLocation.Z};
+
 }
 
 // Called when the game starts or when spawned
@@ -38,6 +47,18 @@ void AMoveAgentToGoal::Tick(float DeltaTime)
 	// Collect agent location and target location
 	//agentLocation = GetActorLocation();
 	Agent::CollectObservations(agentLocation);
+	Agent::CollectObservations(targetLocation);
+
+	if (bHitWall){
+		Agent::SetReward(-1.f);
+		Agent::EndEpisode(1);
+	}else if (bHitGoal){
+		Agent::SetReward(10.f);
+		Agent::EndEpisode(1);
+	}else{
+		Agent::SetReward(-0.1f);
+		Agent::EndEpisode(0);
+	}
 
 	// Get all locations
 	TArray<float> allObservations = Agent::GetObservations();
@@ -56,7 +77,12 @@ void AMoveAgentToGoal::Tick(float DeltaTime)
 	agentLocation.Y += newObservations.Y * deltaTime * agentSpeed;
 
 	// Set agent to new location based on delta time
-	SetActorLocation(agentLocation);
+	if (bHitWall){
+		bHitWall = false; // Reset the flag
+		agentLocation = FVector{0.f, 0.f, 33.f};
+	}else{
+		SetActorLocation(agentLocation, true);
+	}
 
 	Agent::ClearObservations();
 
@@ -67,4 +93,31 @@ void AMoveAgentToGoal::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+}
+
+void AMoveAgentToGoal::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+    if (OtherActor){
+		if (OtherActor->IsA(AAWall::StaticClass())){
+			bHitWall = true;
+			// Handle wall logic
+            // Agent::SetReward(-1.f);
+            // Change material, end episode, etc.
+		}else if (OtherActor->IsA(AGoal::StaticClass())){
+			bHitGoal = true;
+			// Handle wall logic
+            // Agent::SetReward(-1.f);
+            // Change material, end episode, etc.
+		}
+
+        // // Check for Wall component
+        // UBoxComponent* WallBox = Cast<UBoxComponent>(OtherActor->GetComponentByClass(UBoxComponent::StaticClass()));
+        // if (WallBox)
+        // {
+        //  	bHitWall = true;
+		// 		Handle wall logic
+        //     // Agent::SetReward(-1.f);
+        //     // Change material, end episode, etc.
+        // }
+    }
 }
