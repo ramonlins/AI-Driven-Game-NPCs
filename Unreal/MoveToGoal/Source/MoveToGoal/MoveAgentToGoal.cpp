@@ -27,7 +27,7 @@ AMoveAgentToGoal::AMoveAgentToGoal()
     TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &AMoveAgentToGoal::OnOverlapBegin);
 	// Define Camera
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	CameraComponent->SetupAttachment(CubeBox);
+	//CameraComponent->SetupAttachment(CubeBox);
 
 	// Set initial position to zero relative to process
 	agentLocation = FVector{0.f, 0.f, 33.f};
