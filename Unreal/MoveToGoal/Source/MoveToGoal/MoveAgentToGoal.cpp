@@ -3,6 +3,7 @@
 
 #include "MoveAgentToGoal.h"
 #include "AWall.h"
+#include "AGoal.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -11,21 +12,27 @@ AMoveAgentToGoal::AMoveAgentToGoal()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Define box
+	CubeBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Cube Box"));
+	RootComponent = CubeBox;
+	// Define mesh
+	CubeMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube Mesh"));
+	CubeMeshComponent->SetupAttachment(CubeBox);
 	// Create and setup the trigger box
     TriggerBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerBox"));
-    RootComponent = TriggerBox;
+	TriggerBox->SetupAttachment(CubeMeshComponent);
     // Set trigger default profile (ignore physics)
 	TriggerBox->SetCollisionProfileName(TEXT("Trigger"));
 	// Call overlap behavior when the agent (this) start to overlap with another component
     TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &AMoveAgentToGoal::OnOverlapBegin);
-	// Define components
+	// Define Camera
 	CubeBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Cube Box"));
 	CubeMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube Mesh"));
 	CubeMeshComponent->SetupAttachment(TriggerBox);
 
 	// Set initial position to zero relative to process
 	agentLocation = FVector{0.f, 0.f, 33.f};
-	targetLocation = FVector{agentLocation.X + 20.f, agentLocation.Y + 20.f, agentLocation.Z};
+	targetLocation = FVector{191.f, -15.f, 0.f};
 
 }
 
@@ -41,9 +48,9 @@ void AMoveAgentToGoal::BeginPlay()
 }
 
 // Called every frame
-void AMoveAgentToGoal::Tick(float DeltaTime)
+void AMoveAgentToGoal::Tick(float deltaTime)
 {
-	Super::Tick(DeltaTime);
+	Super::Tick(deltaTime);
 	// Collect agent location and target location
 	//agentLocation = GetActorLocation();
 	Agent::CollectObservations(agentLocation);
