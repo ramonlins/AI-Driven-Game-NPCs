@@ -49,12 +49,12 @@ try:
                     print(f"Received int DONE: {done}")
 
                     # Get action
-                    #action = model(obs)
+                    #action = model(obs[:3])
                     # TODO: inference
                     #action = trainer.compute_action(obs)
 
                     #pdb.set_trace()
-                    action = np.random.uniform(-20, 20, 2)
+                    action = np.random.uniform(-5, 5, 2)
                     #action = np.array([10, 0, 0])
                     # Convert the numpy array to a flattened list
                     #data_list = action.tolist()
