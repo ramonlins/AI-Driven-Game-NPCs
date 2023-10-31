@@ -26,14 +26,14 @@ AMoveAgentToGoal::AMoveAgentToGoal()
 	// Call overlap behavior when the agent (this) start to overlap with another component
     TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &AMoveAgentToGoal::OnOverlapBegin);
 	// Define Camera
-	CubeBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Cube Box"));
-	CubeMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube Mesh"));
-	CubeMeshComponent->SetupAttachment(TriggerBox);
+	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	CameraComponent->SetupAttachment(CubeBox);
 
 	// Set initial position to zero relative to process
 	agentLocation = FVector{0.f, 0.f, 33.f};
 	targetLocation = FVector{191.f, -15.f, 0.f};
-
+	// Set controler
+	bIsHeuristic = false;
 }
 
 // Called when the game starts or when spawned
@@ -73,21 +73,29 @@ void AMoveAgentToGoal::Tick(float deltaTime)
 	// Send to server
 	socketConnection->Send(allObservations);
 
-	// Receive action
-	FVector newObservations = socketConnection->Receive();
+	if (bIsHeuristic){
+		// Receive action
+		FVector movementDirection = socketConnection->Receive();
 
-	// Get world delta time (Current drawn frame  - previous drawn frame)
-	static double deltaTime = UGameplayStatics::GetWorldDeltaSeconds(this);
+		MoveAgent(movementDirection, deltaTime);
+	}else{
+		FVector movementDirection = FVector(verticalInputValue, horizontalInputValue, zValue);
 
-	// Update new location
-	agentLocation.X += newObservations.X * deltaTime * agentSpeed;
-	agentLocation.Y += newObservations.Y * deltaTime * agentSpeed;
+		MoveAgent(movementDirection, deltaTime);
+
+	}
 
 	// Set agent to new location based on delta time
 	if (bHitWall){
 		bHitWall = false; // Reset the flag
-		agentLocation = FVector{0.f, 0.f, 33.f};
-	}else{
+		agentLocation = FVector{0.f, 0.f, zValue};
+
+	}else if (bHitGoal){
+		bHitGoal = false; // Reset the flag
+		agentLocation = FVector{0.f, 0.f, zValue};
+		targetLocation = FVector{191.f, -15.f, 0.f};
+	}
+	else{
 		SetActorLocation(agentLocation, true);
 	}
 
@@ -100,6 +108,9 @@ void AMoveAgentToGoal::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	PlayerInputComponent->BindAxis(TEXT("MoveVertical"), this, &AMoveAgentToGoal::MoveVertical);
+	PlayerInputComponent->BindAxis(TEXT("MoveHorizontal"), this, &AMoveAgentToGoal::MoveHorizontal);
+
 }
 
 void AMoveAgentToGoal::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -110,21 +121,49 @@ void AMoveAgentToGoal::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 			// Handle wall logic
             // Agent::SetReward(-1.f);
             // Change material, end episode, etc.
-		}else if (OtherActor->IsA(AGoal::StaticClass())){
+		}
+
+		if (OtherActor->IsA(AGoal::StaticClass())){
 			bHitGoal = true;
+			UE_LOG(LogTemp, Warning, TEXT("Hit the wall Value: %?"), bHitGoal);
 			// Handle wall logic
             // Agent::SetReward(-1.f);
             // Change material, end episode, etc.
 		}
 
-        // // Check for Wall component
-        // UBoxComponent* WallBox = Cast<UBoxComponent>(OtherActor->GetComponentByClass(UBoxComponent::StaticClass()));
-        // if (WallBox)
-        // {
-        //  	bHitWall = true;
-		// 		Handle wall logic
-        //     // Agent::SetReward(-1.f);
-        //     // Change material, end episode, etc.
-        // }
     }
+}
+
+void AMoveAgentToGoal::MoveAgent(FVector newObservations, float deltaTime){
+	// Get world delta time (Current drawn frame  - previous drawn frame)
+	//static double deltaTime = UGameplayStatics::GetWorldDeltaSeconds(this);
+
+	// Update new location
+	agentLocation.X += newObservations.X * deltaTime * agentSpeed;
+	agentLocation.Y += newObservations.Y * deltaTime * agentSpeed;
+
+}
+
+void AMoveAgentToGoal::MoveVertical(float value)
+{
+	// Get world delta time (Current drawn frame  - previous drawn frame)
+	//static double deltaTime = UGameplayStatics::GetWorldDeltaSeconds(this);
+
+	// Update new location
+	//agentLocation.X += value * deltaTime * agentSpeed;
+
+	verticalInputValue = value;
+
+}
+
+void AMoveAgentToGoal::MoveHorizontal(float value)
+{
+	// Get world delta time (Current drawn frame  - previous drawn frame)
+	//static double deltaTime = UGameplayStatics::GetWorldDeltaSeconds(this);
+
+	// Update new location
+	//agentLocation.Y += value * deltaTime * agentSpeed;
+
+	horizontalInputValue = value;
+
 }

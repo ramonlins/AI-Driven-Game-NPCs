@@ -6,6 +6,7 @@
 #include "GameFramework/Pawn.h"
 #include "Agent.h"
 #include "Components/BoxComponent.h"
+#include "Camera/CameraComponent.h"
 #include "MoveAgentToGoal.generated.h"
 
 UCLASS()
@@ -26,18 +27,27 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	// Move by inference
+	void MoveAgent(FVector direction, float deltaTime);
+
+	// Move by keyboard
+	void MoveVertical(float value);
+	void MoveHorizontal(float value);
+
+	// Called when detect overlap between agent and other actors
 	UFUNCTION()
-    void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+    void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	UPROPERTY(VisibleAnywhere)
-    UBoxComponent* TriggerBox;
-
+	// Flags for collision
 	bool bHitWall;
 	bool bHitGoal;
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	// Flag to select control of agent
+	bool bIsHeuristic;
+
+	// Set the trigger box
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Agent")
+    UBoxComponent* TriggerBox;
 
 	// Set to BP a box component
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Agent")
@@ -47,7 +57,23 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Agent")
 	UStaticMeshComponent* CubeMeshComponent;
 
+	// Set to BP the camera component
+	UPROPERTY(EditAnywhere)
+	UCameraComponent* CameraComponent;
+
+
 	// Set to BP a cube mesh component
 	UPROPERTY(EditAnywhere)
 	float agentSpeed = 5.f;
+
+	float zValue = 33.f;
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+private:
+	float verticalInputValue;
+	float horizontalInputValue;
+
 };
