@@ -32,8 +32,10 @@ bool SocketClient::Connect()
     // Convert to IPv4
     FIPv4Address address;
     FIPv4Address::Parse(ipAddress, address);
+
     // Store ip address in a smart pointer for safe memory management
     TSharedRef<FInternetAddr> safeAddress = socketSubsytem->CreateInternetAddr();
+
     // Set socket into localhost:port
     safeAddress->SetIp(address.Value);
     safeAddress->SetPort(port);
@@ -55,14 +57,19 @@ void SocketClient::HandShake()
 {
     // Send a test message for handshake
     const FString data = "Hello Server";
+
     // Create the buffer
     TArray<uint8> SendBuffer;
+
     // Initializes the converter with the content of the data
     FTCHARToUTF8 Converter(*data); // Dereference to give access to TCHAR array
+
     // Retrieve converter pointer, cast to byte of pointers (treat as array of bytes)
     SendBuffer.Append((uint8*)Converter.Get(), Converter.Length());
+
     // Track how many bytes were actually sent over the socket.
     int32 BytesSent = 0;
+
     // Retrieve pointer, number of bytes and send over socket
     clientSocket->Send(SendBuffer.GetData(), SendBuffer.Num(), BytesSent);
 
@@ -97,6 +104,7 @@ void SocketClient::Send(TArray<float>& data)
 
     // Track how many bytes were actually sent over the socket.
     int32 BytesSent = 0;
+
     // Retrieve pointer, number of bytes and send over socket
     clientSocket->Send(SendBuffer.GetData(), SendBuffer.Num(), BytesSent);
 }

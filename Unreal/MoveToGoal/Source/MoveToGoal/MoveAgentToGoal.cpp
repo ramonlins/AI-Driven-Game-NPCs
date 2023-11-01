@@ -15,16 +15,21 @@ AMoveAgentToGoal::AMoveAgentToGoal()
 	// Define box
 	CubeBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Cube Box"));
 	RootComponent = CubeBox;
+
 	// Define mesh
 	CubeMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube Mesh"));
 	CubeMeshComponent->SetupAttachment(CubeBox);
+
 	// Create and setup the trigger box
     TriggerBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerBox"));
 	TriggerBox->SetupAttachment(CubeMeshComponent);
-    // Set trigger default profile (ignore physics)
+
+	// Set trigger default profile (ignore physics)
 	TriggerBox->SetCollisionProfileName(TEXT("Trigger"));
+
 	// Call overlap behavior when the agent (this) start to overlap with another component
     TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &AMoveAgentToGoal::OnOverlapBegin);
+
 	// Define Camera
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	//CameraComponent->SetupAttachment(CubeBox);
@@ -32,8 +37,9 @@ AMoveAgentToGoal::AMoveAgentToGoal()
 	// Set initial position to zero relative to process
 	agentLocation = FVector{0.f, 0.f, 33.f};
 	targetLocation = FVector{191.f, -15.f, 0.f};
-	// Set controler
-	bIsHeuristic = false;
+
+	// Set agent to learn
+	bIsHeuristic = true;
 }
 
 // Called when the game starts or when spawned
@@ -67,14 +73,15 @@ void AMoveAgentToGoal::Tick(float deltaTime)
 		Agent::EndEpisode(0);
 	}
 
-	// Get all locations
+	// Get all observations
 	TArray<float> allObservations = Agent::GetObservations();
 
 	// Send to server
 	socketConnection->Send(allObservations);
 
+	// Player or agent controll
 	if (bIsHeuristic){
-		// Receive action
+		// Received action
 		FVector movementDirection = socketConnection->Receive();
 
 		MoveAgent(movementDirection, deltaTime);
@@ -118,25 +125,20 @@ void AMoveAgentToGoal::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
     if (OtherActor){
 		if (OtherActor->IsA(AAWall::StaticClass())){
 			bHitWall = true;
-			// Handle wall logic
-            // Agent::SetReward(-1.f);
-            // Change material, end episode, etc.
+			// TODO: Change material, end episode, etc.
 		}
 
 		if (OtherActor->IsA(AGoal::StaticClass())){
 			bHitGoal = true;
 			UE_LOG(LogTemp, Warning, TEXT("Hit the wall Value: %?"), bHitGoal);
-			// Handle wall logic
-            // Agent::SetReward(-1.f);
-            // Change material, end episode, etc.
+		    // TODO: Change material, end episode, etc.
 		}
 
     }
 }
 
+// Move agent based on new observations
 void AMoveAgentToGoal::MoveAgent(FVector newObservations, float deltaTime){
-	// Get world delta time (Current drawn frame  - previous drawn frame)
-	//static double deltaTime = UGameplayStatics::GetWorldDeltaSeconds(this);
 
 	// Update new location
 	agentLocation.X += newObservations.X * deltaTime * agentSpeed;
@@ -144,26 +146,15 @@ void AMoveAgentToGoal::MoveAgent(FVector newObservations, float deltaTime){
 
 }
 
+// Move Agent in vertical
 void AMoveAgentToGoal::MoveVertical(float value)
 {
-	// Get world delta time (Current drawn frame  - previous drawn frame)
-	//static double deltaTime = UGameplayStatics::GetWorldDeltaSeconds(this);
-
-	// Update new location
-	//agentLocation.X += value * deltaTime * agentSpeed;
-
 	verticalInputValue = value;
 
 }
-
+// Move agent in horizontal
 void AMoveAgentToGoal::MoveHorizontal(float value)
 {
-	// Get world delta time (Current drawn frame  - previous drawn frame)
-	//static double deltaTime = UGameplayStatics::GetWorldDeltaSeconds(this);
-
-	// Update new location
-	//agentLocation.Y += value * deltaTime * agentSpeed;
-
 	horizontalInputValue = value;
 
 }
