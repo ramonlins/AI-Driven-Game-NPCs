@@ -79,3 +79,8 @@ DerivedDataCache/*
 
 Content/*__ExternalActors__/
 Content/*__ExternalObjects__/
+
+*.venv
+*.env
+*venv
+*env
