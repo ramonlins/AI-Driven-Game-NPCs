@@ -10,19 +10,17 @@ import gymnasium as gym
 from ray.rllib.algorithms.ppo import PPO, PPOConfig
 from gymnasium.spaces import Box
 
-#from MockEnv import GlobalStateManager, MockEnv
-
 
 class GlobalStateManager:
     def __init__(self):
-        self.observation = np.zeros(6)
+        self.observation = np.zeros(6)  # Assuming 6 is the size of your observation
         self.reward = np.zeros(1)
-        self.done = False
+        self.done = np.zeros(1, dtype=bool)
 
-    def update(self, observation, reward, done):
-        self.observation = observation
-        self.reward = reward
-        self.done = False if done == 0 else True
+    def update(self, experience):
+        self.observation = experience['obs']
+        self.reward = experience['reward']
+        self.done = experience['terminated']
 
     def get_state(self):
         return self.observation, self.reward, self.done, {}
@@ -33,23 +31,18 @@ class MockEnv(gym.Env):
         super().__init__()
         self.action_space = env_config["action_space"]
         self.observation_space = env_config["observation_space"]
-        #self.global_state_manager = env_config["state_manage"]
-
-        self.current_observation_space = np.zeros(self.observation_space.shape[0])
-        self.current_reward = np.zeros(1)
-        self.current_done = False
 
     def step(self, action):
         # Get the updated state from the global state manager
         observation, reward, done, _ = global_state_manager.get_state()
 
-        return observation, reward, done, {}
+        return observation, reward,  done, {}
 
     def reset(self):
         # return self.current_observation_space, self.current_reward, self.current_done, False, {}
-        observation, _, _, _ = global_state_manager.get_state()
+        observations, _, _, _ = global_state_manager.get_state()
 
-        return observation
+        return observations
 
 
 def serialize_action(action) -> bytes:
@@ -118,11 +111,26 @@ try:
                     ray.init()
 
                     # Configuring PPO
-                    config = PPOConfig()
-                    config.rollouts(num_rollout_workers=0)
-                    config.environment(env=MockEnv,  env_config=env_config)
-                    config.environment(disable_env_checking=True)
-                    config.resources(num_gpus=1, num_gpus_per_learner_worker=1)
+                    config = (PPOConfig()
+                              .environment(env=MockEnv,
+                                           env_config=env_config,
+                                           disable_env_checking=True)
+                              .rollouts(num_rollout_workers=0, rollout_fragment_length=4)
+                              .training(
+                                    gamma=0.99,
+                                    lr=3.0e-4,
+                                    lambda_=0.95,
+                                    clip_param=0.2,
+                                    kl_coeff=0.5,
+                                    num_sgd_iter=1,
+                                    sgd_minibatch_size=8,
+                                    train_batch_size=16,
+                                    model={"fcnet_hiddens": [128, 128]}
+                                )
+                              .framework('torch')
+                              .resources(num_gpus=1,
+                                         num_gpus_per_learner_worker=1)
+                    )
 
                     # Create ppo algorithm
                     ppo_algo = PPO(config=config)
@@ -149,10 +157,18 @@ try:
                     # Receive next data from unreal
                     next_data = connection.recv(32)
 
+                    # obs_batch, rew_batch, done_batch = [], [], []
                     # Start reinforcement learning loop
+                    t_wait = 0
+                    t_train = 0
                     while True:
                         # Episodes are controlled in unreal
                         next_us_data = struct.unpack("fffffffi", next_data)
+
+                        # TODO: Fix it (Close)
+                        if not data:
+                            break
+
                         next_obs, reward, done = next_us_data[:6], next_us_data[6], next_us_data[-1]
 
                         print(f"Received FVector OBS: {next_obs}")
@@ -160,10 +176,25 @@ try:
                         print(f"Received int DONE: {done}")
 
                         # Update mock environment states, reward and done state
-                        global_state_manager.update(np.array(next_obs), np.array(reward), done)
 
-                        # Train ppo with new data
-                        ppo_algo.train()
+                        is_done = False if done == 0 else True
+
+                        # PPO only needs obs and reward to train (policy gradient algo)
+                        experience = {
+                            "obs": np.array(obs),
+                            "reward": np.array(reward),
+                            "terminated": np.array(done, dtype=bool)
+                        }
+
+                        global_state_manager.update(experience)
+
+                        # Estimate the size of the replay buffer in bytes
+                        if t_wait > 256:
+                            if t_train > 5:
+                                # Train your model on the sampled batch
+                                ppo_algo.train()
+
+                                t_train = 0
 
                         # Take action from next states
                         action = ppo_algo.compute_single_action(np.array(next_obs))
@@ -173,13 +204,15 @@ try:
                         # Send action
                         connection.sendall(action_bytes)
 
-                        # TODO: Fix it (Close)
-                        if not data:
-                            break
+                        obs = next_obs
 
                         # Receive data from unreal
                         next_data = connection.recv(32)
 
+                        t_train += 1
+
+                        if t_wait < 256:
+                            t_wait += 1
     ray.shutdown()
 
 except Exception as error:
