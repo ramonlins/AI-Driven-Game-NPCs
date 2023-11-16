@@ -13,7 +13,7 @@ from gymnasium.spaces import Box
 
 class GlobalStateManager:
     def __init__(self):
-        self.observation = np.zeros(6)  # Assuming 6 is the size of your observation
+        self.observation_init = np.array([0.0, 0.0, 33.0, 101.0, -95.0, 15.0]) # Assuming 6 is the size of your observation
         self.reward = np.zeros(1)
         self.done = np.zeros(1, dtype=bool)
 
@@ -40,9 +40,8 @@ class MockEnv(gym.Env):
 
     def reset(self):
         # return self.current_observation_space, self.current_reward, self.current_done, False, {}
-        observations, _, _, _ = global_state_manager.get_state()
 
-        return observations
+        return global_state_manager.observation_init
 
 
 def serialize_action(action) -> bytes:
@@ -111,29 +110,30 @@ try:
                     ray.init()
 
                     # Configuring PPO
-                    config = (PPOConfig()
-                              .environment(env=MockEnv,
+                    ppo_algo = (PPOConfig()
+                                .environment(env=MockEnv,
                                            env_config=env_config,
                                            disable_env_checking=True)
-                              .rollouts(num_rollout_workers=0, rollout_fragment_length=4)
-                              .training(
-                                    gamma=0.99,
-                                    lr=3.0e-4,
-                                    lambda_=0.95,
-                                    clip_param=0.2,
-                                    kl_coeff=0.5,
-                                    num_sgd_iter=1,
-                                    sgd_minibatch_size=8,
-                                    train_batch_size=16,
-                                    model={"fcnet_hiddens": [128, 128]}
-                                )
-                              .framework('torch')
-                              .resources(num_gpus=1,
-                                         num_gpus_per_learner_worker=1)
+                                .rollouts(num_rollout_workers=0, rollout_fragment_length=4)
+                                .training(
+                                        gamma=0.99,
+                                        lr=3.0e-4,
+                                        lambda_=0.95,
+                                        clip_param=0.2,
+                                        kl_coeff=0.5,
+                                        num_sgd_iter=1,
+                                        sgd_minibatch_size=4,
+                                        train_batch_size=8,
+                                        model={"fcnet_hiddens": [512, 512]}
+                                    )
+                                .framework('torch')
+                                .resources(num_gpus=1,
+                                           num_gpus_per_learner_worker=1)
+                                .build()
                     )
 
                     # Create ppo algorithm
-                    ppo_algo = PPO(config=config)
+                    # ppo_algo = PPO(config=config.build())
 
                     # Receive first data
                     initial_data = connection.recv(32)
@@ -189,12 +189,15 @@ try:
                         global_state_manager.update(experience)
 
                         # Estimate the size of the replay buffer in bytes
-                        if t_wait > 256:
-                            if t_train > 5:
+                        if t_wait >= 32:
+                            if t_train > 10:
                                 # Train your model on the sampled batch
                                 ppo_algo.train()
 
                                 t_train = 0
+
+                                checkpoint_dir = ppo_algo.save().checkpoint.path
+                                print(f"Checkpoint saved in directory {checkpoint_dir}")
 
                         # Take action from next states
                         action = ppo_algo.compute_single_action(np.array(next_obs))
@@ -211,7 +214,7 @@ try:
 
                         t_train += 1
 
-                        if t_wait < 256:
+                        if t_wait < 32:
                             t_wait += 1
     ray.shutdown()
 

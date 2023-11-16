@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Agent.h"
+#include "AWall.h"
+#include "AGoal.h"
 #include "Components/BoxComponent.h"
 #include "Camera/CameraComponent.h"
 #include "MoveAgentToGoal.generated.h"
@@ -76,4 +78,5 @@ private:
 	float verticalInputValue;
 	float horizontalInputValue;
 
+	AGoal* goalActor;
 };

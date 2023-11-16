@@ -2,8 +2,6 @@
 
 
 #include "MoveAgentToGoal.h"
-#include "AWall.h"
-#include "AGoal.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -35,10 +33,10 @@ AMoveAgentToGoal::AMoveAgentToGoal()
 	//CameraComponent->SetupAttachment(CubeBox);
 
 	// Set initial position to zero relative to process
-	agentLocation = FVector{0.f, 0.f, 33.f};
-	targetLocation = FVector{191.f, -15.f, 0.f};
+	agentLocation = FVector{0.f, 0.f, zValue};
+	targetLocation = FVector{101.f, -95.f, 15.f};
 
-	// Set agent to learn
+	// Set agent to learn or be possed
 	bIsHeuristic = true;
 }
 
@@ -51,6 +49,8 @@ void AMoveAgentToGoal::BeginPlay()
 	socketConnection = new SocketClient();
 	socketConnection->Connect();
 
+	// Find goal actor
+	goalActor = Cast<AGoal>(UGameplayStatics::GetActorOfClass(GetWorld(), AGoal::StaticClass()));
 }
 
 // Called every frame
@@ -66,10 +66,13 @@ void AMoveAgentToGoal::Tick(float deltaTime)
 		Agent::SetReward(-1.f);
 		Agent::EndEpisode(1);
 	}else if (bHitGoal){
-		Agent::SetReward(10.f);
+		Agent::SetReward(100.f);
 		Agent::EndEpisode(1);
 	}else{
-		Agent::SetReward(-0.1f);
+		FVector difference = agentLocation - targetLocation;
+		float distance = difference.Size();
+
+		Agent::SetReward((-distance / 100) + 1); // Hardcode normalization based on scene dimensions
 		Agent::EndEpisode(0);
 	}
 
@@ -92,19 +95,44 @@ void AMoveAgentToGoal::Tick(float deltaTime)
 
 	}
 
+	if (bHitWall || bHitGoal){
+		agentLocation = FVector{0.f, 0.f, zValue};
+
+		if (goalActor){
+			float mirror = (rand() % 2) * 2 - 1;
+			float randomX = FMath::FRandRange(70.0f, 160.0f) * mirror;
+			float randomY = FMath::FRandRange(0.0f, 160.0f) * mirror;
+
+			FVector newGoalLocation = FVector{randomX, randomY, 15.f};
+			goalActor->SetActorLocation(newGoalLocation);
+			targetLocation = newGoalLocation;
+		}
+
+		if (bHitWall){
+			bHitWall = false;
+		}else{
+			bHitGoal = false;
+		}
+	}else{
+		SetActorLocation(agentLocation, true);
+	}
+
+
+	/*
 	// Set agent to new location based on delta time
 	if (bHitWall){
 		bHitWall = false; // Reset the flag
-		agentLocation = FVector{0.f, 0.f, zValue};
+
 
 	}else if (bHitGoal){
 		bHitGoal = false; // Reset the flag
 		agentLocation = FVector{0.f, 0.f, zValue};
-		targetLocation = FVector{191.f, -15.f, 0.f};
+		//targetLocation = FVector{10.f, 20.f, zValue};
 	}
 	else{
 		SetActorLocation(agentLocation, true);
 	}
+	*/
 
 	Agent::ClearObservations();
 
