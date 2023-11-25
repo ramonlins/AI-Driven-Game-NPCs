@@ -79,6 +79,9 @@ env_config = {
     "observation_space": observation_space
 }
 
+# Define your custom checkpoint directory
+checkpoint_dir = "/home/rlins/Git/AI-Driven-Game-NPCs/Unreal/MoveToGoal/results"
+
 try:
     # IPv4
     network = socket.AF_INET
@@ -122,9 +125,9 @@ try:
                                         clip_param=0.2,
                                         kl_coeff=0.5,
                                         num_sgd_iter=1,
-                                        sgd_minibatch_size=4,
-                                        train_batch_size=8,
-                                        model={"fcnet_hiddens": [512, 512]}
+                                        sgd_minibatch_size=1,
+                                        train_batch_size=4,
+                                        model={"fcnet_hiddens": [256, 256]}
                                     )
                                 .framework('torch')
                                 .resources(num_gpus=1,
@@ -161,6 +164,7 @@ try:
                     # Start reinforcement learning loop
                     t_wait = 0
                     t_train = 0
+                    cs = 0
                     while True:
                         # Episodes are controlled in unreal
                         next_us_data = struct.unpack("fffffffi", next_data)
@@ -189,15 +193,22 @@ try:
                         global_state_manager.update(experience)
 
                         # Estimate the size of the replay buffer in bytes
-                        if t_wait >= 32:
-                            if t_train > 10:
+                        if t_wait >= 64:
+                            if t_train > 30:
                                 # Train your model on the sampled batch
                                 ppo_algo.train()
 
                                 t_train = 0
 
-                                checkpoint_dir = ppo_algo.save().checkpoint.path
+                            if int(experience['reward']) == 100:
+                                ppo_algo.save(checkpoint_dir)
                                 print(f"Checkpoint saved in directory {checkpoint_dir}")
+                                cs += 1
+
+                                if cs > 10:
+                                    break
+                            else:
+                                cs = 0
 
                         # Take action from next states
                         action = ppo_algo.compute_single_action(np.array(next_obs))
@@ -214,7 +225,7 @@ try:
 
                         t_train += 1
 
-                        if t_wait < 32:
+                        if t_wait < 64:
                             t_wait += 1
     ray.shutdown()
 
