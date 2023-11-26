@@ -1,6 +1,6 @@
 # AI-Driven-Game-NPCs
 
-Welcome to the AI-Driven-Game-NPCs repository! This is a place to store and showcase personal projects related to game development, with a focus on non-player characters (NPCs) powered by both machine learning techniques and traditional algorithms.
+Welcome to the AI-Driven-Game-NPCs repository! This is a place to store and showcase personal projects related to game development, with a focus on non-player characters (NPCs) powered by both machine-learning techniques and traditional algorithms.
 
 ## Table of Contents
 - [About](#about)
@@ -20,7 +20,7 @@ This repository serves as a platform to document, share, and collaborate on vari
 Here are some of the projects you'll find in this repository:
 
 - **Project 1**: *MoveToGoal* - Using Unity and ML-Agents, the project empowers an NPC to autonomously learn and navigate toward a predefined goal using reinforcement learning PPO algorithm.
-- **Project 2**: [MoveToGoalUnreal](https://github.com/ramonlins/AI-Driven-Game-NPCs/tree/feature/unreal/Unreal/MoveToGoal) (Under development ...)
+- **Project 2**: *MoveToGoal* - Using Unreal, Ray RLlib, and PyTorch, the project empowers an NPC to autonomously learn and navigate toward a predefined goal using a reinforcement learning PPO algorithm. Unreal does not have a framework such as mlagens from unity, so I build scripts that communicate unreal with python to train the agent.
 
 Feel free to explore, use, and contribute to any of the projects. Each project will have its dedicated folder with detailed documentation and instructions on how to get started.
 
