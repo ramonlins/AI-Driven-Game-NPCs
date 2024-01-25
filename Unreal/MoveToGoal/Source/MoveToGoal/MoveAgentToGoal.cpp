@@ -30,6 +30,7 @@ AMoveAgentToGoal::AMoveAgentToGoal()
 
 	// Define Camera
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	//CameraComponent->SetupAttachment(CubeBox);
 
 	// Set initial position to zero relative to process
 	agentLocation = FVector{0.f, 0.f, zValue};
@@ -37,8 +38,6 @@ AMoveAgentToGoal::AMoveAgentToGoal()
 
 	// Set agent to learn or be possed
 	bIsHeuristic = true;
-
-	counter = 0;
 }
 
 // Called when the game starts or when spawned
@@ -58,25 +57,22 @@ void AMoveAgentToGoal::BeginPlay()
 void AMoveAgentToGoal::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
-
-	counter += 1;
-
 	// Collect agent location and target location
+	//agentLocation = GetActorLocation();
 	Agent::CollectObservations(agentLocation);
 	Agent::CollectObservations(targetLocation);
 
 	if (bHitWall){
-		Agent::SetReward(-10.f);
+		Agent::SetReward(-1.f);
 		Agent::EndEpisode(1);
 	}else if (bHitGoal){
 		Agent::SetReward(100.f);
 		Agent::EndEpisode(1);
-	}else if (counter >= 1000){
-		Agent::SetReward(-0.1f);
-		Agent::EndEpisode(1);
-
 	}else{
-		Agent::SetReward(-0.01f);
+		FVector difference = agentLocation - targetLocation;
+		float distance = difference.Size();
+
+		Agent::SetReward((-distance / 100) + 1); // Hardcode normalization based on scene dimensions
 		Agent::EndEpisode(0);
 	}
 
@@ -99,15 +95,13 @@ void AMoveAgentToGoal::Tick(float deltaTime)
 
 	}
 
-	if (bHitWall || bHitGoal || counter >= 1000){
+	if (bHitWall || bHitGoal){
 		agentLocation = FVector{0.f, 0.f, zValue};
 
 		if (goalActor){
-			float mirrorX = (rand() % 2) * 2 - 1;
-			float mirrorY = (rand() % 2) * 2 - 1;
-
-			float randomX = FMath::FRandRange(70.0f, 160.0f) * mirrorX;
-			float randomY = FMath::FRandRange(0.0f, 160.0f) * mirrorY;
+			float mirror = (rand() % 2) * 2 - 1;
+			float randomX = FMath::FRandRange(70.0f, 160.0f) * mirror;
+			float randomY = FMath::FRandRange(0.0f, 160.0f) * mirror;
 
 			FVector newGoalLocation = FVector{randomX, randomY, 15.f};
 			goalActor->SetActorLocation(newGoalLocation);
@@ -119,10 +113,26 @@ void AMoveAgentToGoal::Tick(float deltaTime)
 		}else{
 			bHitGoal = false;
 		}
-		counter = 0;
 	}else{
 		SetActorLocation(agentLocation, true);
 	}
+
+
+	/*
+	// Set agent to new location based on delta time
+	if (bHitWall){
+		bHitWall = false; // Reset the flag
+
+
+	}else if (bHitGoal){
+		bHitGoal = false; // Reset the flag
+		agentLocation = FVector{0.f, 0.f, zValue};
+		//targetLocation = FVector{10.f, 20.f, zValue};
+	}
+	else{
+		SetActorLocation(agentLocation, true);
+	}
+	*/
 
 	Agent::ClearObservations();
 

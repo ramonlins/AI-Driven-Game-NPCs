@@ -70,8 +70,6 @@ public:
 
 	float zValue = 33.f;
 
-	int counter;
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
